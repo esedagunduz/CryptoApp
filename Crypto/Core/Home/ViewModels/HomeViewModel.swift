@@ -11,14 +11,11 @@ class HomeViewModel:ObservableObject{
     @Published var allCoins:[CoinModel] = []
     @Published var portfolioCoins:[CoinModel] = []
     @Published var searchText:String = ""
-    @Published var  statistic = [
-        StatisticModel(title: "Title", value: "Value",percentageChange: 1.0),
-        StatisticModel(title: "Title", value: "Value"),
-        StatisticModel(title: "Title", value: "Value"),
-        StatisticModel(title: "Title", value: "Value",percentageChange: -1.0)
-    ]
+    @Published var  statistic : [StatisticModel] = []
     
-    private let  dataService = CoinDataService()
+    private let  coinDataService = CoinDataService()
+    private let marketDataService = MarketDataService()
+    private let portfolioDataService = PortfolioDataService()
     private var cancellables = Set<AnyCancellable>()
     init(){
       addSubsription()
@@ -27,23 +24,42 @@ class HomeViewModel:ObservableObject{
     
     
     func addSubsription(){
-        dataService.$allCoins
-            .sink {[weak self](returnedCoins) in
-                self?.allCoins = returnedCoins
-            }
-            .store(in: &cancellables)
-        
-        
-        $searchText
-            .combineLatest(dataService.$allCoins)
+            $searchText
+            .combineLatest(coinDataService.$allCoins)
             .debounce(for:.seconds(0.5), scheduler: DispatchQueue.main)
             .map(filterCoins)
             .sink {[weak self](returnedCoins) in
                 self?.allCoins = returnedCoins
             }
             .store(in: &cancellables)
+        
+        marketDataService.$marketData
+            .map(mapGlobalMarketData)
+            .sink { [weak self](returnedStats) in
+                self?.statistic = returnedStats
+            }
+            .store(in: &cancellables)
+        $allCoins
+            .combineLatest(portfolioDataService.$savedEntities)
+            .map { (coinModels,portfolioEntities) in
+                coinModels
+                    .compactMap { (coin)->CoinModel? in
+                        guard let entity = portfolioEntities.first(where: {$0.coinID == coin.id})else{
+                            return nil
+                        }
+                        return coin.updateHoldings(amount: entity.amount)
+                    }
+            }
+            .sink { [weak self](returnedCoins) in
+                self?.portfolioCoins = returnedCoins
+            }
+            .store(in: &cancellables)
 
 
+    }
+    
+    func updatePortfolio(coin:CoinModel,amount:Double){
+        portfolioDataService.updatePortfolio(coin: coin, amount: amount)
     }
     
     private func filterCoins(text:String,coins:[CoinModel])->[CoinModel]{
@@ -59,5 +75,27 @@ class HomeViewModel:ObservableObject{
         }
         
     }
+    
+    private func mapGlobalMarketData(marketDataModel:MarketDataModel?)->[StatisticModel]{
+        var stats:[StatisticModel] = []
+        guard let data = marketDataModel else{
+            return stats
+        }
+        let marketCap = StatisticModel(title: "Market Cap", value: data.marketCap, percentageChange: data.marketCapChangePercentage24HUSD)
+        
+        let volume = StatisticModel(title: "24h Volume", value: data.volume)
+        let btcDominance = StatisticModel(title: "BTC dominance", value: data.btcDominance)
+        let portfolio = StatisticModel(title: "Portfolio", value: "$0.00", percentageChange: 0)
+        stats.append(contentsOf:[
+            marketCap,
+            volume,
+            btcDominance,
+            portfolio
+        ])
+        return stats
+        
+    }
+    
+
     
 }
