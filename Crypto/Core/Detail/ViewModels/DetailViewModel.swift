@@ -11,6 +11,10 @@ class DetailViewModel:ObservableObject{
     @Published var coin:CoinModel
     @Published var overviewStatistics:[StatisticModel] = []
     @Published var additionalStatistics:[StatisticModel] = []
+    @Published var coinDescription:String? = nil
+    @Published var websiteURL:String? = nil
+    @Published var redditURL:String? = nil
+    
     private let coinDetailDataService:CoinDetailDataService
     private var cancellables = Set<AnyCancellable>()
     
@@ -29,6 +33,17 @@ class DetailViewModel:ObservableObject{
             }
             .store(in: &cancellables)
         
+        coinDetailDataService.$coinDetails
+               .sink { [weak self] (returnedCoinDetails) in
+                   print("Coin Details received: \(returnedCoinDetails?.name ?? "nil")")
+                   print("Description: \(returnedCoinDetails?.readableDescription ?? "nil")")
+                   print("Website: \(returnedCoinDetails?.links?.homepage?.first ?? "nil")")
+                   
+                   self?.coinDescription = returnedCoinDetails?.readableDescription
+                   self?.websiteURL = returnedCoinDetails?.links?.homepage?.first
+                   self?.redditURL = returnedCoinDetails?.links?.subredditURL
+               }
+               .store(in: &cancellables)
     }
     private func mapDataToStatistics(coinDetailModel:CoinDetailModel?,coinModel:CoinModel)->(overview:[StatisticModel],additional:[StatisticModel]){
         let overviewArray = createOverviewArray(coinModel: coinModel)
@@ -64,7 +79,7 @@ class DetailViewModel:ObservableObject{
         let highStat = StatisticModel(title: "24h High", value: high)
         let low = coinModel.low24H?.asCurrencyWithDecimals() ?? "n/a"
         let lowStat = StatisticModel(title: "24h Low", value: low)
-        let priceChange = coinModel.priceChangePercentage24H?.asCurrencyWithDecimals() ?? "n/a"
+        let priceChange = coinModel.priceChange24H?.asCurrencyWithDecimals() ?? "n/a"
         let pricePercentChange = coinModel.priceChangePercentage24H
         let priceChangeStat = StatisticModel(title: "24h Price Change", value: priceChange, percentageChange: pricePercentChange)
         
