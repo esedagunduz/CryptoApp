@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 class PortfolioDataService{
-    @Published var savedEntities:[PortfolioEntity]=[]
+    @Published var savedEntities: [PortfolioEntity] = []
     private let container : NSPersistentContainer
     private let containerName:String = "PortfolioContainer"
     init(){
@@ -69,7 +69,6 @@ class PortfolioDataService{
     private func save(){
         do {
             try container.viewContext.save()
-            getPortfolio()
         } catch let error {
             print("error\(error)")
         }

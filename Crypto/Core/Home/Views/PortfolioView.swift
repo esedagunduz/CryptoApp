@@ -54,7 +54,7 @@ extension PortfolioView{
                         .padding(4)
                         .onTapGesture {
                             withAnimation(.easeIn){
-                                selectedCoin = coin
+                                updateSelectedCoin(coin: coin)
                             }
                         }
                         .background(
@@ -110,6 +110,7 @@ extension PortfolioView{
                 .opacity(showCheckMark ? 1.0:0.0)
             
             Button {
+                saveButtonPressed()
                 
             } label: {
                 Text("Save".uppercased())
