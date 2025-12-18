@@ -10,6 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @State private var showPortfolio:Bool = false
     @State private var showPortfolioView:Bool = false
+    @State private var showSettingsView:Bool = false
     @EnvironmentObject var vm:HomeViewModel
     
     
@@ -24,6 +25,10 @@ struct HomeView: View {
                     PortfolioView()
                         .environmentObject(vm)
                 }
+                .sheet(isPresented: $showSettingsView) {
+                    SettingsView()
+                }
+
             
             VStack{
                 
@@ -70,6 +75,8 @@ extension HomeView{
                     if showPortfolio{
                         showPortfolioView.toggle()
                         
+                    }else {
+                        showSettingsView.toggle()
                     }
                 }
                 .background(
