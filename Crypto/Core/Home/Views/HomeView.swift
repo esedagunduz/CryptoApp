@@ -25,10 +25,6 @@ struct HomeView: View {
                     PortfolioView()
                         .environmentObject(vm)
                 }
-                .sheet(isPresented: $showSettingsView) {
-                    SettingsView()
-                }
-
             
             VStack{
                 
@@ -41,16 +37,25 @@ struct HomeView: View {
                     allCoinsList
                         .transition(.move(edge: .leading))
                 }
-                if showPortfolio{
-                    portfolioCoinsList
-                        .transition(.move(edge: .trailing))
+                if showPortfolio {
+                    ZStack(alignment: .top) {
+                        if vm.portfolioCoins.isEmpty && vm.searchText.isEmpty {
+                            portfolioEmptyText
+                        } else {
+                            portfolioCoinsList
+                        }
+                    }
+                    .transition(.move(edge: .trailing))
                 }
-                
                 
                 Spacer(minLength: 0)
             }
+            .sheet(isPresented: $showSettingsView, content: {
+                SettingsView()
+            })
             
         }
+        
         .background(
             NavigationLink(destination: DetailLoadingView(coin: $selectedCoin), isActive: $showDetailView, label: {EmptyView()
                 
@@ -125,6 +130,14 @@ extension HomeView{
         }
         .listStyle(.plain)
     }
+    private var portfolioEmptyText: some View {
+        Text("You haven't added any coins to your portfolio yet. Click the + button to get started!")
+            .font(.callout)
+            .foregroundColor(Color.theme.accent)
+            .fontWeight(.medium)
+            .multilineTextAlignment(.center)
+            .padding(50)
+    }
     private func segue(coin:CoinModel){
         selectedCoin = coin
         showDetailView.toggle()
@@ -158,7 +171,7 @@ extension HomeView{
                         vm.sortOption = vm.sortOption == .holdings ? .holdingsReversed: .holdings
                     }
                 }
-
+                
             }
             HStack(spacing:4){
                 Text("Price")

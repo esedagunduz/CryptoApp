@@ -16,13 +16,14 @@ struct PortfolioView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment:.leading,spacing: 0) {
-                    SearchBarView(searchText: $vm.searchText)                }
-           coinLogoList
+                    SearchBarView(searchText: $vm.searchText)
+                }
+                coinLogoList
                 
                 if selectedCoin != nil{
-             portfolioInputSection
+                    portfolioInputSection
                 }
-                    
+                
                 
             }
             .navigationTitle("Edit Portfolio")
@@ -31,7 +32,7 @@ struct PortfolioView: View {
                     XMarkButton()
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-            trailingNavBarButton
+                    trailingNavBarButton
                 }
             }
         }
@@ -90,7 +91,8 @@ extension PortfolioView{
                 Spacer()
                 TextField("Ex:1.4", text: $quantityText)
                     .multilineTextAlignment(.trailing)
-                    .keyboardType(.decimalPad)
+                    .keyboardType(.numbersAndPunctuation)
+                
             }
             Divider()
             HStack{
@@ -118,7 +120,7 @@ extension PortfolioView{
             .opacity(
                 (selectedCoin != nil && selectedCoin?.currentHoldings != Double(quantityText)) ? 1.0:0.0
             )
-
+            
             
         }
         .font(.headline)
@@ -134,7 +136,7 @@ extension PortfolioView{
         
         withAnimation(.easeIn){
             showCheckMark = true
-        removeSelectedCoin()
+            removeSelectedCoin()
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 3){
@@ -144,7 +146,7 @@ extension PortfolioView{
         }
     }
     private func updateSelectedCoin(coin:CoinModel){
-      selectedCoin = coin
+        selectedCoin = coin
         if let portfolioCoin =  vm.portfolioCoins.first(where: {$0.id == coin.id}),
            let amount = portfolioCoin.currentHoldings{
             quantityText = "\(amount)"
@@ -156,5 +158,6 @@ extension PortfolioView{
     
     private func removeSelectedCoin(){
         selectedCoin = nil
+        vm.searchText = ""
     }
 }

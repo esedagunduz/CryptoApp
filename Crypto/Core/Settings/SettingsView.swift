@@ -9,7 +9,6 @@
 import SwiftUI
 
 struct SettingsView: View {
-    
     let coingeckoURL = URL(string: "https://www.coingecko.com")!
     
     var body: some View {
